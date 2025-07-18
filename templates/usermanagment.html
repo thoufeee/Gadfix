@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <h1>User Management</h1>
+  </div>
+
+  <div class="sidebar">
+    <a href="login.html">Login</a>
+    <a href="index.html">User Dashboard</a>
+    <a href="main.html">Admin Dashboard</a>
+    <a href="usermanagment.html" class="active">User Management</a>
+    <a href="services.html">Service Management</a>
+    <a href="staffmanagment.html">Staff Management</a>
+  </div>
+
+  <div class="content">
+    <h2>Users List</h2>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th style="padding: 20px;">Email</th>
+          <th style="padding: 20px;">Name</th>
+          <th style="padding: 20px;">Status</th>
+          <th style="padding: 20px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+       
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+
+    function fetchUsers() {
+      fetch("http://localhost:8080/admin/users", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Unauthorized or error fetching users.");
+        return res.json();
+      })
+      .then(data => {
+        const tbody = document.querySelector("#userTable tbody");
+        tbody.innerHTML = "";
+
+        const users = data.users || data;
+
+       users.forEach(user => {
+      const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+    <td>${user.email}</td>
+    <td>${user.firstname} ${user.secondname}</td>
+    <td>${user.Block ? "Blocked" : "Active"}</td>
+    <td>
+     <td>
+  <button data-id="${user.ID}" onclick="blockUser(event)">Block</button>
+  <button data-id="${user.ID}" onclick="unblockUser(event)">Unblock</button>
+</td>
+
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+});
+
+      })
+      .catch(err => {
+        console.error("Failed to fetch users:", err);
+        alert("Error fetching users. Check console or try again.");
+      });
+    }
+
+    function blockUser(event) {
+      const button = event.currentTarget;
+      const userId = button.getAttribute("data-id");
+
+      button.disabled = true;
+      button.textContent = "Blocking...";
+
+      fetch(`http://localhost:8080/admin/block/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to block user");
+        return res.json();
+      })
+      .then(() => fetchUsers())
+      .catch(err => {
+        console.error("Block error:", err);
+        alert("Error: " + err.message);
+      });
+    }
+
+    function unblockUser(event) {
+      const button = event.currentTarget;
+      const userId = button.getAttribute("data-id");
+
+      button.disabled = true;
+      button.textContent = "Unblocking...";
+
+      fetch(`http://localhost:8080/admin/unblock/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to unblock user");
+        return res.json();
+      })
+      .then(() => fetchUsers())
+      .catch(err => {
+        console.error("Unblock error:", err);
+        alert("Error: " + err.message);
+      });
+    }
+
+    fetchUsers();
+  </script>
+</body>
+</html>

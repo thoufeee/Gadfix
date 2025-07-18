@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Service Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <h1>Services Management</h1>
+  </div>
+
+  <div class="sidebar">
+    <a href="login.html">Login</a>
+    <a href="index.html">User Dashboard</a>
+    <a href="main.html">Admin Dashboard</a>
+    <a href="usermanagment.html">User Management</a>
+    <a href="services.html" class="active">Service Management</a>
+    <a href="staffmanagment.html">Staff Management</a>
+  </div>
+
+  <div class="content">
+    <h2 id="form-title">Add New Service</h2>
+    <form id="serviceForm">
+      <input type="text" id="name" placeholder="Service Name" required />
+      <input type="text" id="description" placeholder="Description" required />
+      <input type="text" id="price" placeholder="Price" required />
+      <input type="text" id="category" placeholder="Category" required />
+      <input type="text" id="url" placeholder="Image URL" required />
+      <input type="text" id="duration" placeholder="Duration" required />
+      <button type="submit">Save</button>
+      <input type="hidden" id="serviceId" />
+    </form>
+
+    <h2>Service List</h2>
+    <table id="serviceTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Category</th>
+          <th>Image URL</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+
+    document.getElementById("serviceForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const id = document.getElementById("serviceId").value;
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+      const price = document.getElementById("price").value;
+      const category = document.getElementById("category").value;
+      const url = document.getElementById("url").value;
+      const duration = document.getElementById("duration").value;
+
+      const method = id ? "PUT" : "POST";
+      const url_ = id
+        ? `http://localhost:8080/admin/service/update/${id}`
+        : "http://localhost:8080/admin/service/add";
+
+      fetch(url_, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, description, price, category, url, duration }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to save service");
+          return res.json();
+        })
+        .then(() => {
+          resetForm();
+          fetchServices();
+        })
+        .catch((err) => alert("Error: " + err.message));
+    });
+
+    function fetchServices() {
+      fetch("http://localhost:8080/api/get", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const tbody = document.querySelector("#serviceTable tbody");
+          tbody.innerHTML = "";
+
+          data.forEach((service) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${service.name}</td>
+              <td>${service.description}</td>
+              <td>${service.price}</td>
+              <td>${service.category}</td>
+              <td>${service.url}</td>
+              <td>${service.duration}</td>
+              <td>
+                <button onclick="editService(
+                  ${service.ID},
+                  \`${service.name}\`,
+                  \`${service.description}\`,
+                  \`${service.price}\`,
+                  \`${service.category}\`,
+                  \`${service.url}\`,
+                  \`${service.duration}\`
+                )">Edit</button>
+                <button onclick="deleteService(${service.ID})">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch((err) => console.error("Error fetching services:", err));
+    }
+
+    function deleteService(id) {
+      if (!confirm("Are you sure you want to delete this service?")) return;
+
+      fetch(`http://localhost:8080/admin/service/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to delete service");
+          return res.json();
+        })
+        .then(() => fetchServices())
+        .catch((err) => alert("Error: " + err.message));
+    }
+
+    function editService(id, name, description, price, category, url, duration) {
+      document.getElementById("form-title").textContent = "Edit Service";
+      document.getElementById("serviceId").value = id;
+      document.getElementById("name").value = name;
+      document.getElementById("description").value = description;
+      document.getElementById("price").value = price;
+      document.getElementById("category").value = category;
+      document.getElementById("url").value = url;
+      document.getElementById("duration").value = duration;
+    }
+
+    function resetForm() {
+      document.getElementById("form-title").textContent = "Add New Service";
+      document.getElementById("serviceForm").reset();
+      document.getElementById("serviceId").value = "";
+    }
+
+    fetchServices(); 
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+</head>
+<body>
+  <h1>Login</h1>
+
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email" required /><br />
+    <input type="password" id="password" placeholder="Password" required /><br />
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch("http://localhost:8080/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password })
+      })
+      .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Login failed: " + (data.err || "Unknown error"));
+          return;
+        }
+
+        
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+        localStorage.setItem("user_role", data.role);
+        alert("Login successful!");
+        if (data.role === "0") {
+            window.location.href = "/static/main.html"
+        }else if (data.role === "1") {
+             window.location.href = "/static/index.html"
+        }
+      })
+      .catch(err => {
+        alert("Network error: " + err.message);
+        console.error("Error:", err);
+      });
+    });
+  </script>
+</body>
+</html>
