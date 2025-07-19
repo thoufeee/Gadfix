@@ -152,3 +152,54 @@ func CreateStaff(c *gin.Context) {
 		"staff": newstaff,
 	})
 }
+
+// update staff profile
+func UpdateStaffProfile(c *gin.Context) {
+	id := c.Param("id")
+	staff_id, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid id"})
+		return
+	}
+
+	var staff models.Staff
+
+	if err := db.DB.First(&staff, staff_id).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "staff not found"})
+		return
+	}
+
+	var input struct {
+		FirstName  *string `json:"firstname"`
+		SecondName *string `json:"secondname"`
+		Phone      *string `json:"phone"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid input"})
+		return
+	}
+
+	if input.Phone != nil {
+		if len(*input.Phone) != 10 {
+			c.JSON(http.StatusBadRequest, gin.H{"err": "phone number must be 10 digits"})
+			return
+		}
+		staff.Phone = *input.Phone
+	}
+
+	if input.FirstName != nil {
+		staff.FirstName = *input.FirstName
+	}
+
+	if input.SecondName != nil {
+		staff.SecondName = *input.SecondName
+	}
+
+	if err := db.DB.Save(&staff).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "failed to update staff details"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "successfuly updated staff profile"})
+}

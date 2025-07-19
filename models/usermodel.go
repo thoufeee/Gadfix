@@ -16,8 +16,8 @@ type User struct {
 	Role       string        `json:"role"`
 	Phone      string        `json:"phone"`
 	Block      bool          `gorm:"default:false"`
-	Address    []UserAddress `json:"address" gorm:"foreignKey:UserID"`
-	Bookings   []Booking     `json:"bookings" gorm:"foreignKey:UserID"`
+	Address    []UserAddress `json:"address" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Bookings   []Booking     `json:"bookings" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 // staff model

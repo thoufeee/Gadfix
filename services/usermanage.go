@@ -54,16 +54,16 @@ func UnblockUSers(c *gin.Context) {
 
 // delete users
 func DeleteUsers(c *gin.Context) {
-	userid := c.Param("id")
+	id := c.Param("id")
 
-	id, err := strconv.Atoi(userid)
+	user_id, err := strconv.Atoi(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid id"})
 		return
 	}
 	var user models.User
 
-	if err := db.DB.First(&user, id).Error; err != nil {
+	if err := db.DB.First(&user, user_id).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"err": "user not found"})
 		return
 	}
@@ -135,4 +135,55 @@ func CreateUsers(c *gin.Context) {
 		"data": newuser,
 	})
 
+}
+
+// updating users
+func UpdateUsers(c *gin.Context) {
+	id := c.Param("id")
+
+	user_id, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid id"})
+		return
+	}
+
+	var user models.User
+	if err := db.DB.First(&user, user_id).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "user not found"})
+		return
+	}
+
+	var input struct {
+		FirstName  *string `json:"firstname"`
+		SecondName *string `json:"secondname"`
+		Phone      *string `json:"phone"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid input"})
+		return
+	}
+
+	if input.Phone != nil {
+		if len(*input.Phone) != 10 {
+			c.JSON(http.StatusBadRequest, gin.H{"err": "password length must be 10 digits"})
+			return
+		}
+		user.Phone = *input.Phone
+	}
+
+	if input.FirstName != nil {
+		user.FirstName = *input.FirstName
+	}
+
+	if input.SecondName != nil {
+		user.SecondName = *input.SecondName
+	}
+
+	if err := db.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "failed to update user profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "successfuly updated user profile"})
 }

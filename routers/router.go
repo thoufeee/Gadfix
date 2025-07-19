@@ -16,14 +16,17 @@ func Public(c *gin.Engine) {
 	api.POST("/signup", controllers.Signup)
 	api.POST("/login", controllers.Login)
 	api.POST("/logout", controllers.Logout)
+	api.PUT("/forgottpassworduser", controllers.UserForgotPassword)
 
 	api.POST("/staffsignup", controllers.StaffSignup)
 	api.POST("/stafflogin", controllers.StaffLogin)
+	api.PUT("/forgottpasswordstaff", controllers.StaffForgotPassword)
 
 	api.POST("/adminsignup", controllers.AdminSignup)
 
 	api.GET("/get", services.ServiceListing)
 	api.GET("/search", services.SearchService)
+
 }
 
 // user only route
@@ -36,6 +39,7 @@ func UserRoute(c *gin.Engine) {
 	user.POST("/payment/:id", services.ConfirmPayment)
 	user.DELETE("/bookingcancel/:id", services.BookingCancel)
 	user.GET("/staffdetails/:id", services.BookingDetailsToUser)
+	user.PUT("/profileupdate", controllers.UpdateUserProfile)
 }
 
 // admin only route
@@ -51,6 +55,7 @@ func AdminRoute(c *gin.Engine) {
 	admin.PUT("/unblock/:id", services.UnblockUSers)
 	admin.POST("/createuser", services.CreateUsers)
 	admin.DELETE("/delete/:id", services.DeleteUsers)
+	admin.PUT("/updateuser/:id", services.UpdateUsers)
 
 	admin.GET("/service/length", services.ServiceLength)
 	admin.POST("/service/add", services.CreateService)
@@ -63,6 +68,7 @@ func AdminRoute(c *gin.Engine) {
 	admin.PUT("/staffblock/:id", services.BlockStaff)
 	admin.PUT("/staffunblock/:id", services.UnBlockStaff)
 	admin.DELETE("/staffdelete/:id", services.DeleteStaff)
+	admin.PUT("/updatestaff/:id", services.UpdateStaffProfile)
 
 	admin.PUT("/bookingapproved/:id", services.AdminApprove)
 	admin.POST("/assignstaff/:id", services.AdminAssignStaff)
@@ -83,5 +89,5 @@ func StaffRoute(c *gin.Engine) {
 	staff.PUT("/deliveryconfirmed/:id", services.PickingConfirmed)
 	staff.PUT("/deliverycompleted/:id", services.DeliveryCompleted)
 	staff.GET("/useraddress/:id", services.UserDetailsToStaff)
-
+	staff.PUT("/profileupdate", controllers.StaffProfileUpdate)
 }
