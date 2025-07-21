@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Staff Management</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="staffmanagement.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
   <div class="header">
@@ -11,126 +13,151 @@
   </div>
 
   <div class="sidebar">
-    <a href="login.html">Login</a>
-    <a href="index.html">User Dashboard</a>
-    <a href="main.html">Admin Dashboard</a>
+    <a href="admindashboard.html">Admin Dashboard</a>
     <a href="usermanagment.html">User Management</a>
-    <a href="services.html">Service Management</a>
-    <a href="staffmanagment.html">Staff Management</a>
+    <a href="servicemanagment.html">Service Management</a>
+    <a href="staffmanagment.html" class="active">Staff Management</a>
+    <a href="#" onclick="logout()">Logout</a>
   </div>
 
   <div class="content">
-    <h2>Staff List</h2>
+    <div class="top-bar">
+      <h2>Staff List</h2>
+      <button class="add-btn" onclick="openModal()">+ Add Staff</button>
+    </div>
+
     <table id="userTable">
       <thead>
         <tr>
-          <th style="padding: 20px;">Email</th>
-          <th style="padding: 20px;">Name</th>
-          <th style="padding: 20px;">Status</th>
-          <th style="padding: 30px;">Actions</th>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
 
-   <script>
-    const token = localStorage.getItem("access_token");
+  <div id="staffModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Add Staff</h3>
+      <input type="text" id="firstName" placeholder="First Name" />
+      <input type="text" id="secondName" placeholder="Second Name" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <input type="text" id="phone" placeholder="Phone" />
+      <div class="modal-buttons">
+        <button class="submit-btn" onclick="submitStaff()">Submit</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
-    function fetchUsers() {
-      fetch("http://localhost:8080/admin/staff", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
+  <script>
+    const token = localStorage.getItem("access_token");
+    let editingStaffId = null;
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function openModal() {
+      editingStaffId = null;
+      document.getElementById("modalTitle").textContent = "Add Staff";
+      document.querySelectorAll("#staffModal input").forEach(input => input.value = "");
+      document.getElementById("staffModal").style.display = "block";
+    }
+
+    function openEditModal(id, firstName, secondName, email, phone) {
+      editingStaffId = id;
+      document.getElementById("modalTitle").textContent = "Update Staff";
+      document.getElementById("firstName").value = firstName;
+      document.getElementById("secondName").value = secondName;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("password").value = "";
+      document.getElementById("staffModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("staffModal").style.display = "none";
+    }
+
+    function fetchStaff() {
+      axios.get("http://localhost:8080/admin/staffs", {
+        headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => {
-        if (!res.ok) throw new Error("Unauthorized or error fetching users.");
-        return res.json();
-      })
-      .then(data => {
         const tbody = document.querySelector("#userTable tbody");
         tbody.innerHTML = "";
-
-        const staffs = data
-
-       staffs.forEach(user => {
-      const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-    <td>${user.email}</td>
-    <td>${user.firstname} ${user.secondname}</td>
-    <td>${user.Block ? "Blocked" : "Active"}</td>
-    <td>
-     <td>
-  <button data-id="${user.ID}" onclick="blockUser(event)">Block</button>
-  <button data-id="${user.ID}" onclick="unblockUser(event)">Unblock</button>
-</td>
-
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-});
-
+        res.data.forEach(user => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${user.email}</td>
+            <td>${user.firstname} ${user.secondname}</td>
+            <td>${user.Block ? "Blocked" : "Active"}</td>
+            <td>
+              <button onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
+              <button onclick="deleteStaff(${user.ID})">Delete</button>
+              <button onclick="blockStaff(${user.ID})">Block</button>
+              <button onclick="unblockStaff(${user.ID})">Unblock</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
       })
-      .catch(err => {
-        console.error("Failed to fetch users:", err);
-        alert("Error fetching users. Check console or try again.");
-      });
+      .catch(err => alert("Error fetching staff: " + err.message));
     }
 
-    function blockUser(event) {
-      const button = event.currentTarget;
-      const userId = button.getAttribute("data-id");
+    function submitStaff() {
+      const staff = {
+        firstname: document.getElementById("firstName").value,
+        secondname: document.getElementById("secondName").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        phone: document.getElementById("phone").value
+      };
 
-      button.disabled = true;
-      button.textContent = "Blocking...";
+      const url = editingStaffId
+        ? `http://localhost:8080/admin/updatestaff/${editingStaffId}`
+        : "http://localhost:8080/admin/createstaff";
 
-      fetch(`http://localhost:8080/admin/staffblock/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
+      const method = editingStaffId ? axios.put : axios.post;
+
+      method(url, staff, {
+        headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to block user");
-        return res.json();
+      .then(() => {
+        closeModal();
+        fetchStaff();
       })
-      .then(() => fetchUsers())
-      .catch(err => {
-        console.error("Block error:", err);
-        alert("Error: " + err.message);
-      });
+      .catch(err => alert("Error: " + err.message));
     }
 
-    function unblockUser(event) {
-      const button = event.currentTarget;
-      const userId = button.getAttribute("data-id");
-
-      button.disabled = true;
-      button.textContent = "Unblocking...";
-
-      fetch(`http://localhost:8080/admin/staffunblock/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
+    function deleteStaff(id) {
+      if (!confirm("Are you sure you want to delete this staff member?")) return;
+      axios.delete(`http://localhost:8080/admin/staffdelete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to unblock user");
-        return res.json();
-      })
-      .then(() => fetchUsers())
-      .catch(err => {
-        console.error("Unblock error:", err);
-        alert("Error: " + err.message);
-      });
+      .then(() => fetchStaff())
+      .catch(err => alert("Delete error: " + err.message));
     }
 
-    fetchUsers(); 
+    function blockStaff(id) {
+      axios.put(`http://localhost:8080/admin/staffblock/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => fetchStaff());
+    }
+
+    function unblockStaff(id) {
+      axios.put(`http://localhost:8080/admin/staffunblock/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => fetchStaff());
+    }
+
+    fetchStaff();
   </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Login</title>
+  <link rel="stylesheet" href="login.css">
 </head>
 <body>
   <h1>Login</h1>
@@ -20,6 +21,8 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
+      console.log("Attempting login with:", email, password);
+
       fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: {
@@ -28,7 +31,9 @@
         body: JSON.stringify({ email, password })
       })
       .then(async res => {
+        console.log("Response status:", res.status);
         const data = await res.json();
+        console.log("Response data:", data);
 
         if (!res.ok) {
           alert("Login failed: " + (data.err || "Unknown error"));
@@ -41,9 +46,9 @@
         localStorage.setItem("user_role", data.role);
         alert("Login successful!");
         if (data.role === "0") {
-            window.location.href = "/static/main.html"
+            window.location.href = "/static/admindashboard.html"
         }else if (data.role === "1") {
-             window.location.href = "/static/index.html"
+             window.location.href = "/static/user.html"
         }
       })
       .catch(err => {

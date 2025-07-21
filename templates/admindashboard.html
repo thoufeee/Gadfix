@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="admindashboard.css" />
 </head>
 <body>
   <div class="header">
@@ -12,12 +12,11 @@
   </div>
 
   <div class="sidebar">
-    <a href="login.html">Login</a>
-    <a href="index.html">User Dashboard</a>
-    <a href="main.html">Admin Dashboard</a>
+    <a href="admindashboard.html">Admin Dashboard</a>
     <a href="usermanagment.html">User Management</a>
-    <a href="services.html">Service Management</a>
+    <a href="servicemanagment.html">Service Management</a>
     <a href="staffmanagment.html">Staff Management</a>
+    <a onclick="logout()">Logout</a>
   </div>
 
   <div class="content">
@@ -64,6 +63,13 @@
   </div>
    <script>
   const token = localStorage.getItem("access_token");
+
+   function logout() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_role");
+      window.location.href = "login.html";
+    }
 
   function UsersTotalCount() {
     fetch("http://localhost:8080/admin/users/length", {

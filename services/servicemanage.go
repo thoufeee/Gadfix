@@ -3,6 +3,7 @@ package services
 import (
 	"gadfix/db"
 	"gadfix/models"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -46,10 +47,14 @@ func UpdateServices(c *gin.Context) {
 	}
 
 	var input struct {
-		Name        string `json:"name"`
-		Price       string `json:"price"`
-		Description string `json:"description"`
+		Name         *string `json:"name"`
+		Price        *string `json:"price"`
+		Description  *string `json:"description"`
+		Category     *string `json:"category"`
+		Duration     *string `json:"duration"`
+		ServiceImage *string `json:"url"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid input"})
 		return
@@ -61,9 +66,24 @@ func UpdateServices(c *gin.Context) {
 		return
 	}
 
-	service.Name = input.Name
-	service.Price = input.Price
-	service.Description = input.Description
+	if input.Name != nil {
+		service.Name = *input.Name
+	}
+	if input.Price != nil {
+		service.Price = *input.Price
+	}
+	if input.Description != nil {
+		service.Description = *input.Description
+	}
+	if input.Category != nil {
+		service.Category = *input.Category
+	}
+	if input.Duration != nil {
+		service.Duration = *input.Duration
+	}
+	if input.ServiceImage != nil {
+		service.ServiceImage = *input.ServiceImage
+	}
 
 	if err := db.DB.Save(&service).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"err": "failed to change services"})
@@ -83,12 +103,21 @@ func DeleteServices(c *gin.Context) {
 
 	var service models.Service
 	if err := db.DB.First(&service, id).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "service not found"})
+		c.JSON(http.StatusNotFound, gin.H{"err": "service not found"})
+		return
+	}
+
+	// checking service has active booking
+	var count int64
+	db.DB.Model(&models.Booking{}).Where("service_id = ?", id).Count(&count)
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"err": "service has active bookings and cannot be deleted"})
 		return
 	}
 
 	if err := db.DB.Unscoped().Delete(&service).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "service deletion failed"})
+		log.Println("delete error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"err": "service deletion failed"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"res": "successfuly deleted service"})

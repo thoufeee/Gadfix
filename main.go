@@ -16,7 +16,6 @@ func main() {
 	r := gin.Default()
 
 	r.Static("/static", "./templates")
-	// r.LoadHTMLGlob("templates/*.html")
 
 	routers.Public(r)
 	routers.UserRoute(r)

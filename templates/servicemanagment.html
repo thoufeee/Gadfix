@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Service Management</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="servicemanagement.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>Services Management</h1>
+  </div>
+
+  <div class="sidebar">
+    <a href="admindashboard.html">Admin Dashboard</a>
+    <a href="usermanagment.html">User Management</a>
+    <a href="servicemanagment.html" class="active">Service Management</a>
+    <a href="staffmanagment.html">Staff Management</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+
+  <div class="content">
+    <div class="top-bar">
+      <h2 id="form-title">Services</h2>
+      <input type="text" id="searchInput" placeholder="Search service..." />
+      <button onclick="toggleForm()" class="add-btn">+ Add Service</button>
+    </div>
+
+    <form id="serviceForm" class="hidden">
+      <input type="text" id="name" placeholder="Service Name" required />
+      <input type="text" id="description" placeholder="Description" required />
+      <input type="text" id="price" placeholder="Price" required />
+      <input type="text" id="category" placeholder="Category" required />
+      <input type="text" id="url" placeholder="Image URL" required />
+      <input type="text" id="duration" placeholder="Duration" required />
+      <button type="submit">Save</button>
+      <input type="hidden" id="serviceId" />
+    </form>
+
+    <h3>Service List</h3>
+    <table id="serviceTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Category</th>
+          <th>Image URL</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function toggleForm() {
+      document.getElementById("serviceForm").classList.toggle("hidden");
+      resetForm();
+    }
+
+    document.getElementById("serviceForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const id = document.getElementById("serviceId").value;
+      const payload = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        price: document.getElementById("price").value,
+        category: document.getElementById("category").value,
+        url: document.getElementById("url").value,
+        duration: document.getElementById("duration").value
+      };
+
+      const request = id
+        ? axios.put(`http://localhost:8080/admin/service/update/${id}`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        : axios.post("http://localhost:8080/admin/service/add", payload, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+      request
+        .then(() => {
+          fetchServices();
+          toggleForm();
+        })
+        .catch((err) => alert("Error: " + err.message));
+    });
+
+    function fetchServices() {
+      axios.get("http://localhost:8080/api/get", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => {
+          const tbody = document.querySelector("#serviceTable tbody");
+          tbody.innerHTML = "";
+          res.data.forEach(service => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${service.name}</td>
+              <td>${service.description}</td>
+              <td>${service.price}</td>
+              <td>${service.category}</td>
+              <td>${service.url}</td>
+              <td>${service.duration}</td>
+              <td>
+                <button onclick="editService(${service.ID}, \`${service.name}\`, \`${service.description}\`, \`${service.price}\`, \`${service.category}\`, \`${service.url}\`, \`${service.duration}\`)">Edit</button>
+                <button onclick="deleteService(${service.ID})">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch((err) => alert("Fetch error: " + err.message));
+    }
+
+    function deleteService(id) {
+      if (!confirm("Are you sure you want to delete this service?")) return;
+
+      axios.delete(`http://localhost:8080/admin/service/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(() => fetchServices())
+        .catch((err) => alert("Delete error: " + err.message));
+    }
+
+    function editService(id, name, description, price, category, url, duration) {
+      toggleForm();
+      document.getElementById("form-title").textContent = "Edit Service";
+      document.getElementById("serviceId").value = id;
+      document.getElementById("name").value = name;
+      document.getElementById("description").value = description;
+      document.getElementById("price").value = price;
+      document.getElementById("category").value = category;
+      document.getElementById("url").value = url;
+      document.getElementById("duration").value = duration;
+    }
+
+    function resetForm() {
+      document.getElementById("form-title").textContent = "Services";
+      document.getElementById("serviceForm").reset();
+      document.getElementById("serviceId").value = "";
+    }
+
+
+  function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+function searchServices(query) {
+  if (!query.trim()) {
+    return fetchServices(); 
+  }
+
+  axios.get(`http://localhost:8080/api/search?search=${encodeURIComponent(query)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => {
+      const tbody = document.querySelector("#serviceTable tbody");
+      tbody.innerHTML = "";
+
+      (res.data || []).forEach(service => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${service.name}</td>
+          <td>${service.description}</td>
+          <td>${service.price}</td>
+          <td>${service.category}</td>
+          <td>${service.url}</td>
+          <td>${service.duration}</td>
+          <td>
+            <button onclick="editService(${service.ID}, \`${service.name}\`, \`${service.description}\`, \`${service.price}\`, \`${service.category}\`, \`${service.url}\`, \`${service.duration}\`)">Edit</button>
+            <button onclick="deleteService(${service.ID})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(err => console.error("Search error:", err));
+}
+
+document.getElementById("searchInput").addEventListener("input", debounce(function () {
+  searchServices(this.value);
+}, 400));
+
+    fetchServices();
+  </script>
+</body>
+</html>

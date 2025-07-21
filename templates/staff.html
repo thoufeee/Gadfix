@@ -1,19 +1,85 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>{{ .title }}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="staff.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-  <h1>Staff Dashboard</h1>
 
-  <h3>Account Info</h3>
-  <ul>
-    <li><strong>ID:</strong> {{ .account.ID }}</li>
-    <li><strong>Name:</strong> {{ .account.Firstname }}</li>
-    <li><strong>Email:</strong> {{ .account.Email }}</li>
-    <li><strong>Phone:</strong> {{ .account.Phone }}</li>
-    
-  </ul>
+  <div class="sidebar">
+    <a  class="active">Staff Details</a>
+    <a href="">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <h2>Staff Request Details</h2>
+
+    <div id="staff-details">
+      <p><strong>Name:</strong> <span id="staff-name">Loading...</span></p>
+      <p><strong>Email:</strong> <span id="staff-email">Loading...</span></p>
+      <p><strong>Phone:</strong> <span id="staff-phone">Loading...</span></p>
+    </div>
+
+    <div id="user-address">
+      <h3>User Address</h3>
+      <p id="address">Loading...</p>
+    </div>
+
+    <button id="accept-btn">Accept Request</button>
+  </div>
+
+  <script>
+    const staffId = "123"; // Replace with dynamic staff ID if needed
+    const requestId = "abc"; // Replace with dynamic request ID
+
+    // Fetch staff details
+    async function fetchStaffDetails() {
+      try {
+        const response = await axios.get(`http://localhost:8080/staff/${staffId}`);
+        const staff = response.data;
+
+        document.getElementById("staff-name").textContent = staff.name;
+        document.getElementById("staff-email").textContent = staff.email;
+        document.getElementById("staff-phone").textContent = staff.phone;
+      } catch (error) {
+        console.error("Failed to fetch staff details:", error);
+      }
+    }
+
+    // Fetch user address
+    async function fetchUserAddress() {
+      try {
+        const response = await axios.get(`http://localhost:8080/request/${requestId}`);
+        const address = response.data.user_address;
+
+        document.getElementById("address").textContent = address;
+      } catch (error) {
+        console.error("Failed to fetch user address:", error);
+      }
+    }
+
+    // Accept request handler
+    document.getElementById("accept-btn").addEventListener("click", async () => {
+      try {
+        await axios.post(`http://localhost:8080/staff/accept/${requestId}`, {
+          staff_id: staffId,
+        });
+        alert("Request accepted!");
+      } catch (error) {
+        alert("Failed to accept request.");
+        console.error(error);
+      }
+    });
+
+    // Init
+    fetchStaffDetails();
+    fetchUserAddress();
+  </script>
+
 </body>
 </html>
