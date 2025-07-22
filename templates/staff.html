@@ -1,9 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Staff Profile</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="staff.css" />
@@ -12,74 +10,161 @@
 <body>
 
   <div class="sidebar">
-    <a  class="active">Staff Details</a>
-    <a href="">Logout</a>
+    <a class="active">Staff Details</a>
+    <a href="#" onclick="logout()">Logout</a>
   </div>
 
   <div class="main-content">
     <h2>Staff Request Details</h2>
 
-    <div id="staff-details">
+    <div id="staff-details" class="card">
       <p><strong>Name:</strong> <span id="staff-name">Loading...</span></p>
       <p><strong>Email:</strong> <span id="staff-email">Loading...</span></p>
       <p><strong>Phone:</strong> <span id="staff-phone">Loading...</span></p>
     </div>
 
-    <div id="user-address">
+    <button id="toggle-update-btn">Edit Profile</button>
+
+    <div id="update-form" class="card" style="display: none;">
+      <h3>Update Staff Info</h3>
+      <div class="form-row">
+        <input type="text" id="update-name" placeholder="First Name" />
+        <input type="text" id="update-secondname" placeholder="Second Name" />
+      </div>
+      <div class="form-row">
+        <input type="email" id="update-email" placeholder="Email" />
+        <input type="text" id="update-phone" placeholder="Phone" />
+      </div>
+      <button id="update-btn">Update Profile</button>
+    </div>
+
+    <div id="user-address" class="card">
       <h3>User Address</h3>
       <p id="address">Loading...</p>
     </div>
 
     <button id="accept-btn">Accept Request</button>
   </div>
+  </div>
 
   <script>
-    const staffId = "123"; // Replace with dynamic staff ID if needed
-    const requestId = "abc"; // Replace with dynamic request ID
+  const token = localStorage.getItem("access_token");
+  const requestId = localStorage.getItem("request_id");
 
-    // Fetch staff details
-    async function fetchStaffDetails() {
-      try {
-        const response = await axios.get(`http://localhost:8080/staff/${staffId}`);
-        const staff = response.data;
+  if (!token) {
+    alert("Access token missing. Please login again.");
+    window.location.href = "stafflogin.html";
+  }
 
-        document.getElementById("staff-name").textContent = staff.name;
-        document.getElementById("staff-email").textContent = staff.email;
-        document.getElementById("staff-phone").textContent = staff.phone;
-      } catch (error) {
-        console.error("Failed to fetch staff details:", error);
-      }
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "stafflogin.html";
+  }
+
+  document.getElementById("toggle-update-btn").addEventListener("click", () => {
+    const updateForm = document.getElementById("update-form");
+    const isVisible = updateForm.style.display === "block";
+
+    if (!isVisible) {
+      
+      const nameParts = document.getElementById("staff-name").textContent.trim().split(" ");
+      document.getElementById("update-name").value = nameParts[0] || "";
+      document.getElementById("update-secondname").value = nameParts[1] || "";
+      document.getElementById("update-email").value = document.getElementById("staff-email").textContent.trim();
+      document.getElementById("update-phone").value = document.getElementById("staff-phone").textContent.trim();
     }
 
-    // Fetch user address
-    async function fetchUserAddress() {
-      try {
-        const response = await axios.get(`http://localhost:8080/request/${requestId}`);
-        const address = response.data.user_address;
+    updateForm.style.display = isVisible ? "none" : "block";
+  });
 
-        document.getElementById("address").textContent = address;
-      } catch (error) {
-        console.error("Failed to fetch user address:", error);
-      }
+  document.getElementById("update-btn").addEventListener("click", async () => {
+    const firstname = document.getElementById("update-name").value;
+    const secondname = document.getElementById("update-secondname").value;
+    const email = document.getElementById("update-email").value;
+    const phone = document.getElementById("update-phone").value;
+
+   
+    try {
+      const res = await axios.put(`http://localhost:8080/staff/profileupdate`, {
+        firstname,
+        secondname,
+        email,
+        phone
+      }, config);
+
+      alert("Profile updated successfully!");
+      fetchStaffProfile(); 
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to update profile.");
     }
+  });
 
-    // Accept request handler
-    document.getElementById("accept-btn").addEventListener("click", async () => {
+  async function fetchStaffProfile() {
+    try {
+      const res = await axios.get("http://localhost:8080/staff/dash", config);
+      const staff = res.data.staff;
+
+      document.getElementById("staff-name").textContent = `${staff.firstname} ${staff.secondname}`;
+      document.getElementById("staff-email").textContent = staff.email;
+      document.getElementById("staff-phone").textContent = staff.phone;
+    } catch (error) {
+      console.error("Failed to fetch staff profile:", error);
+      alert("Failed to load staff data. Please login again.");
+    }
+  }
+
+  async function fetchUserDetails() {
+    try {
+      const res = await axios.get("http://localhost:8080/staff/useraddress", config);
+      const data = res.data;
+
+      if (document.getElementById("address")) {
+        if (data.address) {
+          const address = data.address;
+          document.getElementById("address").textContent = 
+            `${address.address}, ${address.landmark}, ${address.street}, ${address.city}, ${address.state}`;
+        } else {
+          document.getElementById("address").textContent = "No address found";
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+      document.getElementById("address").textContent = "_";
+    }
+  }
+
+  const acceptBtn = document.getElementById("accept-btn");
+  if (acceptBtn) {
+    acceptBtn.addEventListener("click", async () => {
+      if (!requestId) {
+        alert("Missing request ID.");
+        return;
+      }
+
       try {
-        await axios.post(`http://localhost:8080/staff/accept/${requestId}`, {
-          staff_id: staffId,
-        });
-        alert("Request accepted!");
+        const res = await axios.post(
+          `http://localhost:8080/staff/acceptservice/${requestId}`,
+          {},
+          config
+        );
+        alert(res.data.message || "Request accepted!");
       } catch (error) {
+        console.error("Accept request failed:", error);
         alert("Failed to accept request.");
-        console.error(error);
       }
     });
+  }
 
-    // Init
-    fetchStaffDetails();
-    fetchUserAddress();
-  </script>
+  fetchStaffProfile();
+  fetchUserDetails();
+</script>
 
 </body>
 </html>

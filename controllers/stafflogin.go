@@ -52,9 +52,9 @@ func StaffLogin(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"res": "successfuly loged in",
-			"access token":  token,
-			"refresh token": refresh,
-			"role":          staff.Role,
+			"access":  token,
+			"refresh": refresh,
+			"role":    staff.Role,
 		})
 		return
 	}

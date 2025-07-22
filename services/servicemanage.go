@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -126,21 +127,25 @@ func DeleteServices(c *gin.Context) {
 // search services
 func SearchService(c *gin.Context) {
 	key := c.Query("search")
+	key = strings.TrimSpace(key)
+
 	var services []models.Service
 
-	if key != "" {
-		pattern := "%" + key + "%"
-		if err := db.DB.Where("name LIKE ? OR description LIKE ?", pattern, pattern).Find(&services).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"err": "failed to fetch services"})
-			return
-		}
-	} else {
-		if err := db.DB.Find(&services).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"err": "service not found"})
-			return
-		}
+	if key == "" {
+		c.JSON(http.StatusOK, []models.Service{})
+		return
 	}
+
+	pattern := "%" + key + "%"
+
+	if err := db.DB.Where("LOWER(name) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)", pattern, pattern).
+		Find(&services).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"err": "Failed to search services"})
+		return
+	}
+
 	c.JSON(http.StatusOK, services)
+
 }
 
 // length of services

@@ -88,6 +88,6 @@ func StaffRoute(c *gin.Engine) {
 	staff.PUT("/acceptservice/:id", services.StaffAcceptService)
 	staff.PUT("/deliveryconfirmed/:id", services.PickingConfirmed)
 	staff.PUT("/deliverycompleted/:id", services.DeliveryCompleted)
-	staff.GET("/useraddress/:id", services.UserDetailsToStaff)
+	staff.GET("/useraddress", services.UserDetailsToStaff)
 	staff.PUT("/profileupdate", controllers.StaffProfileUpdate)
 }

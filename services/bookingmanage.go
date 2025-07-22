@@ -432,31 +432,33 @@ func BookingDetailsToUser(c *gin.Context) {
 
 // sending user details to staff
 func UserDetailsToStaff(c *gin.Context) {
-	id := c.Param("id")
-	user_id, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid id"})
+	staff_id := c.MustGet("userid").(uint)
+
+	var booking models.Booking
+	if err := db.DB.Where("staff_id = ?", staff_id).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"err": "no active booking found"})
 		return
 	}
 
 	var user models.User
-	if err := db.DB.First(&user, user_id).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "user not found"})
+	if err := db.DB.First(&user, booking.UserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"err": "user not found"})
 		return
 	}
 
 	var address models.UserAddress
-	if err := db.DB.First(&address, user_id).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "address not found"})
+	if err := db.DB.Where("user_id = ?", user.ID).First(&address).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"user_name":  user.FirstName + " " + user.SecondName,
+			"user_phone": user.Phone,
+			"address":    nil,
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"name":     user.FirstName,
-		"phone":    user.Phone,
-		"address":  address.Address,
-		"landmark": address.Landmark,
-		"street":   address.Street,
-		"city":     address.City,
+		"user_name":  user.FirstName + " " + user.SecondName,
+		"user_phone": user.Phone,
+		"address":    address,
 	})
 }
