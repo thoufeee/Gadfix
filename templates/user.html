@@ -42,7 +42,7 @@
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("user_role");
-      window.location.href = "login.html";
+      window.location.href = "main.html";
     }
 
     function loadDashboard() {
@@ -110,6 +110,7 @@
       <div class="order-card">
         <p><strong>Status:</strong> ${order.status}</p>
         <p><strong>Pickup Time:</strong> ${order.pickup_time || "Not assigned yet"}</p>
+        <p><strong>Delivery Time:</strong> ${order.delivery_time || "Not assigned yet"}</p>
         <hr>
         <p><strong>Assigned Staff:</strong> ${order.staff_name}</p>
         <p><strong>Staff ID:</strong> ${order.staff_id}</p>
@@ -138,7 +139,7 @@
         phone: document.getElementById("phone").value
       };
 
-      axios.put("http://localhost:8080/user/update", data, {
+      axios.put("http://localhost:8080/user/profileupdate", data, {
         headers: {
           Authorization: "Bearer " + token
         }

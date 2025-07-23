@@ -23,5 +23,4 @@ func main() {
 	routers.AdminRoute(r)
 
 	r.Run(":8080")
-
 }

@@ -10,7 +10,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2c3e50;
+  background-color:black !important;
   padding: 15px 30px;
   color: white;
 }
@@ -45,7 +45,7 @@ body {
 
 .search-section button {
   padding: 10px 20px;
-  background-color: #3498db;
+  background-color: #0d0e0e;
   border: none;
   border-radius: 5px;
   color: white;
