@@ -136,10 +136,8 @@ func UserForgotPassword(c *gin.Context) {
 		return
 	}
 
-	user.Password = hashpass
-
-	if err := db.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "failed to update password"})
+	if err := db.DB.Model(&user).Update("password", hashpass).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
 	}
 

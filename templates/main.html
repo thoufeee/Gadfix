@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="main.css" />
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+   <link rel="icon" href="img/gadfix3.jpg" type="image/x-icon" />
    <style>
     .navbar {
       background-color: black;
@@ -25,7 +26,7 @@
   <nav class="navbar">
     <div class="nav-left">
       <img src="img/gadfix3.jpg" alt="GadFix Logo" class="nav-logo" />
-      <span class="site-title">GadFix</span>
+      <span class="site-title">GADFIX</span>
     </div>
     <div class="nav-right">
       <a href="login.html">Login</a>
@@ -89,8 +90,9 @@
         card.innerHTML = `
           <h3>${service.name}</h3>
           <p>${service.description}</p>
-          <p>${service.price}</p>
-          <p>${service.category}</p>
+          <p><strong>Price : </strong>${service.price}</p>
+          <p>Category : ${service.category}</p>
+          
         `;
         container.appendChild(card);
       });

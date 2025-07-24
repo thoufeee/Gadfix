@@ -18,6 +18,8 @@
   <div id="user-info"></div>
 
   <div class="details-container">
+    
+   
     <div class="update-form">
       <h3>Update Profile</h3>
       <form id="update-form">
@@ -29,12 +31,23 @@
       </form>
     </div>
 
-    <div class="order-info">
-      <h3>Order Details</h3>
-      <div id="order-list"></div>
+    
+    <div class="history-section">
+      <h3>Booking History</h3>
+      <div id="booking-history" class="card-list">
+       </div>
     </div>
+
+    
+    <div class="order-section">
+      <h3>Order Details</h3>
+      <div id="order-list" class="card-list">
+      </div>
+    </div>
+    
   </div>
 </div>
+
 
 
   <script>
@@ -126,6 +139,44 @@
 }
 
 
+ function loadBookingHistory() {
+  const token = localStorage.getItem("access_token");
+
+  axios.get("http://localhost:8080/user/history", {
+    headers: { Authorization: "Bearer " + token }
+  })
+  .then(res => {
+    const history = res.data.result || [];
+
+    if (history.length === 0) {
+      document.getElementById("booking-history").innerHTML = `<p style="color: gray;">No past bookings found.</p>`;
+      return;
+    }
+
+    const container = document.getElementById("booking-history");
+    container.innerHTML = "";
+
+    history.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "order-card";
+      card.innerHTML = `
+        <p><strong>BookingID:</strong> ${item.ID}</p>
+        <p><strong>ServiceID:</strong> ${item.serviceid}</p>
+        <p><strong>Status:</strong> ${item.status}</p>
+        <p><strong>Amount:</strong> ₹${item.amount}</p>
+        <p><strong>Payment Status:</strong> ${item.paymentstatus}</p>
+        <p><strong>DeliveryTime : </strong> ${new Date(item.DeliveryTime).toLocaleString()}</p>
+      `;
+      container.appendChild(card);
+    });
+  })
+  .catch(err => {
+    console.error("Booking history fetch error:", err);
+    document.getElementById("booking-history").innerHTML = `<p style="color: red;">Unable to load booking history.</p>`;
+  });
+}
+
+
 
     document.getElementById("update-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -155,6 +206,7 @@
     });
 
     loadDashboard();
+    loadBookingHistory()
     
   </script>
 </body>

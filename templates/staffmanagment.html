@@ -47,6 +47,7 @@
       <input type="email" id="email" placeholder="Email" />
       <input type="password" id="password" placeholder="Password" />
       <input type="text" id="phone" placeholder="Phone" />
+      <input type="text" id="cardnumber" placeholder="cardnumber" />
       <div class="modal-buttons">
         <button class="submit-btn" onclick="submitStaff()">Submit</button>
         <button class="cancel-btn" onclick="closeModal()">Cancel</button>
@@ -60,7 +61,7 @@
 
     function logout() {
       localStorage.clear();
-      window.location.href = "login.html";
+      window.location.href = "main.html";
     }
 
     function openModal() {
@@ -70,7 +71,7 @@
       document.getElementById("staffModal").style.display = "block";
     }
 
-    function openEditModal(id, firstName, secondName, email, phone) {
+    function openEditModal(id, firstName, secondName, email, phone, cardnumber) {
       editingStaffId = id;
       document.getElementById("modalTitle").textContent = "Update Staff";
       document.getElementById("firstName").value = firstName;
@@ -78,6 +79,7 @@
       document.getElementById("email").value = email;
       document.getElementById("phone").value = phone;
       document.getElementById("password").value = "";
+      document.getElementById("cardnumber").value = cardnumber;
       document.getElementById("staffModal").style.display = "block";
     }
 
@@ -117,7 +119,8 @@
         secondname: document.getElementById("secondName").value,
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
-        phone: document.getElementById("phone").value
+        phone: document.getElementById("phone").value,
+        cardnumber: document.getElementById("cardnumber").value
       };
 
       const url = editingStaffId

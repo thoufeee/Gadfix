@@ -43,7 +43,6 @@
       <p id="address">Loading...</p>
     </div>
 
-    <button id="accept-btn">Accept Request</button>
   </div>
   </div>
 
@@ -53,7 +52,7 @@
 
   if (!token) {
     alert("Access token missing. Please login again.");
-    window.location.href = "stafflogin.html";
+    window.location.href = "main.html";
   }
 
   const config = {
@@ -121,47 +120,39 @@
   }
 
   async function fetchUserDetails() {
-    try {
-      const res = await axios.get("http://localhost:8080/staff/useraddress", config);
-      const data = res.data;
+  try {
+    const res = await axios.get("http://localhost:8080/staff/useraddress", config);
+    const data = res.data;
 
-      if (document.getElementById("address")) {
-        if (data.address) {
-          const address = data.address;
-          document.getElementById("address").textContent = 
-            `${address.address}, ${address.landmark}, ${address.street}, ${address.city}, ${address.state}`;
-        } else {
-          document.getElementById("address").textContent = "No address found";
-        }
+    const addressElement = document.getElementById("address");
+
+    if (addressElement) {
+      const address = data?.address;
+
+      if (address) {
+        addressElement.textContent = 
+          `${address.address}, ${address.landmark}, ${address.street}, ${address.city}, ${address.state}`;
+      } else {
+        addressElement.textContent = "No user address available";
       }
-    } catch (error) {
-      console.error("Failed to fetch user details:", error);
-      document.getElementById("address").textContent = "_";
+    }
+  } catch (error) {
+    const addressElement = document.getElementById("address");
+
+    console.error("Failed to fetch user details:", error);
+
+    if (addressElement) {
+      if (error.response && error.response.status === 404) {
+        addressElement.textContent = "No booking or address assigned yet";
+      } else {
+        addressElement.textContent = "Error fetching user address";
+      }
     }
   }
+}
 
-  const acceptBtn = document.getElementById("accept-btn");
-  if (acceptBtn) {
-    acceptBtn.addEventListener("click", async () => {
-      if (!requestId) {
-        alert("Missing request ID.");
-        return;
-      }
 
-      try {
-        const res = await axios.post(
-          `http://localhost:8080/staff/acceptservice/${requestId}`,
-          {},
-          config
-        );
-        alert(res.data.message || "Request accepted!");
-      } catch (error) {
-        console.error("Accept request failed:", error);
-        alert("Failed to accept request.");
-      }
-    });
-  }
-
+  
   fetchStaffProfile();
   fetchUserDetails();
 </script>

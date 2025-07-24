@@ -26,7 +26,6 @@ func Public(c *gin.Engine) {
 
 	api.GET("/get", services.ServiceListing)
 	api.GET("/search", services.SearchService)
-
 }
 
 // user only route
@@ -40,6 +39,7 @@ func UserRoute(c *gin.Engine) {
 	user.DELETE("/bookingcancel/:id", services.BookingCancel)
 	user.GET("/staffdetails/:id", services.BookingDetailsToUser)
 	user.PUT("/profileupdate", controllers.UpdateUserProfile)
+	user.GET("/history", services.UserBookingHistory)
 }
 
 // admin only route

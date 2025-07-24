@@ -422,10 +422,11 @@ func BookingDetailsToUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"staff_id":    staff.ID,
-		"staff_name":  staff.FirstName,
-		"status":      booking.Status,
-		"pickup_time": booking.PickupTime,
+		"staff_id":      staff.ID,
+		"staff_name":    staff.FirstName,
+		"status":        booking.Status,
+		"pickup_time":   booking.PickupTime,
+		"delivery_time": booking.DeliveryTime,
 	})
 
 }
@@ -435,7 +436,8 @@ func UserDetailsToStaff(c *gin.Context) {
 	staff_id := c.MustGet("userid").(uint)
 
 	var booking models.Booking
-	if err := db.DB.Where("staff_id = ?", staff_id).First(&booking).Error; err != nil {
+	if err := db.DB.Where("staff_id = ? AND status != ?", staff_id, constansts.StatusCompleted).
+		Order("created_at DESC").First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"err": "no active booking found"})
 		return
 	}
@@ -461,4 +463,20 @@ func UserDetailsToStaff(c *gin.Context) {
 		"user_phone": user.Phone,
 		"address":    address,
 	})
+}
+
+// user get his booking history
+func UserBookingHistory(c *gin.Context) {
+	user_id := c.MustGet("userid").(uint)
+
+	var bookings []models.Booking
+
+	if err := db.DB.Where("user_id = ? AND status = ?", user_id, constansts.StatusCompleted).
+		Order("created_at DESC").
+		Find(&bookings).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"err": "bookings not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"result": bookings})
 }
