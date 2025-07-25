@@ -25,7 +25,7 @@
   <div class="content">
   <div class="top-bar">
     <h2>Users List</h2>
-    <button class="add-btn" onclick="openAddModal()">+ Add User</button>
+    <button class="add-btn" onclick="openAddModal()">Add User</button>
   </div>
 
   <table id="userTable">
@@ -93,10 +93,10 @@
             <td>${user.firstname} ${user.secondname}</td>
             <td>${user.Block ? "Blocked" : "Active"}</td>
             <td class="actions">
-              <button onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
-              <button onclick="deleteUser(${user.ID})">Delete</button>
-              <button onclick="blockUser(${user.ID})">Block</button>
-              <button onclick="unblockUser(${user.ID})">Unblock</button>
+              <button class="staff-button" onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
+              <button class="staff-button" onclick="deleteUser(${user.ID})">Delete</button>
+              <button class="staff-button" onclick="blockUser(${user.ID})">Block</button>
+              <button class="staff-button" onclick="unblockUser(${user.ID})">Unblock</button>
             </td>
           `;
           tbody.appendChild(tr);
