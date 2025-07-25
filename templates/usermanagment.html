@@ -93,10 +93,10 @@
             <td>${user.firstname} ${user.secondname}</td>
             <td>${user.Block ? "Blocked" : "Active"}</td>
             <td class="actions">
-              <button class="staff-button" onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
-              <button class="staff-button" onclick="deleteUser(${user.ID})">Delete</button>
-              <button class="staff-button" onclick="blockUser(${user.ID})">Block</button>
-              <button class="staff-button" onclick="unblockUser(${user.ID})">Unblock</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" class="staff-button" onclick="deleteUser(${user.ID})">Delete</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" class="staff-button" onclick="blockUser(${user.ID})">Block</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" class="staff-button" onclick="unblockUser(${user.ID})">Unblock</button>
             </td>
           `;
           tbody.appendChild(tr);
