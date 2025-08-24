@@ -1,0 +1,108 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+}
+
+.sidebar {
+  position: fixed;
+  width: 200px;
+  height: 100%;
+  background-color: #000000;
+  padding-top: 20px;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  padding: 15px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.sidebar a.active {
+  background-color: #1abc9c;
+}
+
+.sidebar a:hover:not(.active) {
+  background-color: #34495e;
+}
+
+.main-content {
+  margin-left: 220px;
+  padding: 30px;
+}
+
+.card {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+button {
+  font-size: 14px;
+  padding: 10px 20px;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 10px;
+}
+
+#accept-btn {
+  background-color: #1abc9c;
+}
+
+#accept-btn:hover {
+  background-color: #16a085;
+}
+
+#toggle-update-btn {
+  background-color: #000000;
+  margin-bottom: 20px;
+}
+
+#toggle-update-btn:hover {
+  background-color: #2980b9;
+}
+
+#update-btn {
+  background-color: #000000;
+}
+
+#update-btn:hover {
+  background-color: #218838;
+}
+
+
+#update-form input {
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Staff Management</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="staffmanagement.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>Staff Management</h1>
+  </div>
+
+  <div class="sidebar">
+    <a href="admindashboard.html">Admin Dashboard</a>
+    <a href="usermanagment.html">User Management</a>
+    <a href="servicemanagment.html">Service Management</a>
+    <a href="staffmanagment.html" class="active">Staff Management</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="content">
+    <div class="top-bar">
+      <h2>Staff List</h2>
+      <button class="add-btn" onclick="openModal()">+ Add Staff</button>
+    </div>
+
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="staffModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Add Staff</h3>
+      <input type="text" id="firstName" placeholder="First Name" />
+      <input type="text" id="secondName" placeholder="Second Name" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <input type="text" id="phone" placeholder="Phone" />
+      <input type="text" id="cardnumber" placeholder="cardnumber" />
+      <div class="modal-buttons">
+        <button class="submit-btn" onclick="submitStaff()">Submit</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+    let editingStaffId = null;
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "main.html";
+    }
+
+    function openModal() {
+      editingStaffId = null;
+      document.getElementById("modalTitle").textContent = "Add Staff";
+      document.querySelectorAll("#staffModal input").forEach(input => input.value = "");
+      document.getElementById("staffModal").style.display = "block";
+    }
+
+    function openEditModal(id, firstName, secondName, email, phone, cardnumber) {
+      editingStaffId = id;
+      document.getElementById("modalTitle").textContent = "Update Staff";
+      document.getElementById("firstName").value = firstName;
+      document.getElementById("secondName").value = secondName;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("password").value = "";
+      document.getElementById("cardnumber").value = cardnumber;
+      document.getElementById("staffModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("staffModal").style.display = "none";
+    }
+
+    function fetchStaff() {
+      axios.get("http://localhost:8080/admin/staffs", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        const tbody = document.querySelector("#userTable tbody");
+        tbody.innerHTML = "";
+        res.data.forEach(user => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${user.email}</td>
+            <td>${user.firstname} ${user.secondname}</td>
+            <td>${user.Block ? "Blocked" : "Active"}</td>
+            <td>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" onclick="openEditModal(${user.ID}, '${user.firstname}', '${user.secondname}', '${user.email}', '${user.phone}')">Edit</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" onclick="deleteStaff(${user.ID})">Delete</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" onclick="blockStaff(${user.ID})">Block</button>
+              <button style="background-color: black; color: white; padding: 6px 10px; border: none; border-radius: 4px;" onclick="unblockStaff(${user.ID})">Unblock</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => alert("Error fetching staff: " + err.message));
+    }
+
+    function submitStaff() {
+      const staff = {
+        firstname: document.getElementById("firstName").value,
+        secondname: document.getElementById("secondName").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        phone: document.getElementById("phone").value,
+        cardnumber: document.getElementById("cardnumber").value
+      };
+
+      const url = editingStaffId
+        ? `http://localhost:8080/admin/updatestaff/${editingStaffId}`
+        : "http://localhost:8080/admin/createstaff";
+
+      const method = editingStaffId ? axios.put : axios.post;
+
+      method(url, staff, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(() => {
+        closeModal();
+        fetchStaff();
+      })
+      .catch(err => alert("Error: " + err.message));
+    }
+
+    function deleteStaff(id) {
+      if (!confirm("Are you sure you want to delete this staff member?")) return;
+      axios.delete(`http://localhost:8080/admin/staffdelete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(() => fetchStaff())
+      .catch(err => alert("Delete error: " + err.message));
+    }
+
+    function blockStaff(id) {
+      axios.put(`http://localhost:8080/admin/staffblock/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => fetchStaff());
+    }
+
+    function unblockStaff(id) {
+      axios.put(`http://localhost:8080/admin/staffunblock/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => fetchStaff());
+    }
+
+    fetchStaff();
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Staff Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="staff.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+  <div class="sidebar">
+    <a class="active">Staff Details</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <h2>Staff Account Details</h2>
+
+    <div id="staff-details" class="card">
+      <p><strong>Name:</strong> <span id="staff-name">Loading...</span></p>
+      <p><strong>Email:</strong> <span id="staff-email">Loading...</span></p>
+      <p><strong>Phone:</strong> <span id="staff-phone">Loading...</span></p>
+    </div>
+
+    <button id="toggle-update-btn">Edit Profile</button>
+
+    <div id="update-form" class="card" style="display: none;">
+      <h3>Update Staff Info</h3>
+      <div class="form-row">
+        <input type="text" id="update-name" placeholder="First Name" />
+        <input type="text" id="update-secondname" placeholder="Second Name" />
+      </div>
+      <div class="form-row">
+        <input type="email" id="update-email" placeholder="Email" />
+        <input type="text" id="update-phone" placeholder="Phone" />
+      </div>
+      <button id="update-btn">Update Profile</button>
+    </div>
+
+    <div id="user-address" class="card">
+      <h3>User Address</h3>
+      <p id="address">Loading...</p>
+    </div>
+
+  </div>
+  </div>
+
+  <script>
+  const token = localStorage.getItem("access_token");
+  const requestId = localStorage.getItem("request_id");
+
+  if (!token) {
+    alert("Access token missing. Please login again.");
+    window.location.href = "main.html";
+  }
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "main.html";
+  }
+
+  document.getElementById("toggle-update-btn").addEventListener("click", () => {
+    const updateForm = document.getElementById("update-form");
+    const isVisible = updateForm.style.display === "block";
+
+    if (!isVisible) {
+      
+      const nameParts = document.getElementById("staff-name").textContent.trim().split(" ");
+      document.getElementById("update-name").value = nameParts[0] || "";
+      document.getElementById("update-secondname").value = nameParts[1] || "";
+      document.getElementById("update-email").value = document.getElementById("staff-email").textContent.trim();
+      document.getElementById("update-phone").value = document.getElementById("staff-phone").textContent.trim();
+    }
+
+    updateForm.style.display = isVisible ? "none" : "block";
+  });
+
+  document.getElementById("update-btn").addEventListener("click", async () => {
+    const firstname = document.getElementById("update-name").value;
+    const secondname = document.getElementById("update-secondname").value;
+    const email = document.getElementById("update-email").value;
+    const phone = document.getElementById("update-phone").value;
+
+   
+    try {
+      const res = await axios.put(`http://localhost:8080/staff/profileupdate`, {
+        firstname,
+        secondname,
+        email,
+        phone
+      }, config);
+
+      alert("Profile updated successfully!");
+      fetchStaffProfile(); 
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to update profile.");
+    }
+  });
+
+  async function fetchStaffProfile() {
+    try {
+      const res = await axios.get("http://localhost:8080/staff/dash", config);
+      const staff = res.data.staff;
+
+      document.getElementById("staff-name").textContent = `${staff.firstname} ${staff.secondname}`;
+      document.getElementById("staff-email").textContent = staff.email;
+      document.getElementById("staff-phone").textContent = staff.phone;
+    } catch (error) {
+      console.error("Failed to fetch staff profile:", error);
+      alert("Failed to load staff data. Please login again.");
+    }
+  }
+
+  async function fetchUserDetails() {
+  try {
+    const res = await axios.get("http://localhost:8080/staff/useraddress", config);
+    const data = res.data;
+
+    const addressElement = document.getElementById("address");
+
+    if (addressElement) {
+      const address = data?.address;
+
+      if (address) {
+        addressElement.textContent = 
+          `${address.address}, ${address.landmark}, ${address.street}, ${address.city}, ${address.state}`;
+      } else {
+        addressElement.textContent = "No user address available";
+      }
+    }
+  } catch (error) {
+    const addressElement = document.getElementById("address");
+
+    console.error("Failed to fetch user details:", error);
+
+    if (addressElement) {
+      if (error.response && error.response.status === 404) {
+        addressElement.textContent = "No booking or address assigned yet";
+      } else {
+        addressElement.textContent = "Error fetching user address";
+      }
+    }
+  }
+}
+
+
+  
+  fetchStaffProfile();
+  fetchUserDetails();
+</script>
+
+</body>
+</html>

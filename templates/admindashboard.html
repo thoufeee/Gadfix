@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admindashboard.css" />
+</head>
+<body>
+  <div class="header">
+    <h1>Admin Dashboard</h1>
+  </div>
+
+  <div class="sidebar">
+    <a href="admindashboard.html">Admin Dashboard</a>
+    <a href="usermanagment.html">User Management</a>
+    <a href="servicemanagment.html">Service Management</a>
+    <a href="staffmanagment.html">Staff Management</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+
+  <div class="content">
+   <table id="userTable">
+  <thead>
+    <tr>
+      <th style="padding: 20px;">Users Count</th>
+      <th style="padding: 20px;">Staffs Count</th>
+      <th style="padding: 20px;">Services Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="userCount" style="padding: 20px;">Loading...</td>
+      <td id="staffCount" style="padding: 20px;">Loading...</td>
+      <td id="serviceCount" style="padding: 20px;">Loading...</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="margin: 30px 0;" />
+
+<h2>Booking History</h2>
+  <table id="bookingTable">
+    <thead>
+      <tr>
+        <th style="padding: 20px;">UserID</th>
+        <th style="padding: 20px;">ServiceID</th>
+        <th style="padding: 20px;">BookingID</th>
+        <th style="padding: 20px;">Status</th>
+        <th style="padding: 20px;">StaffID</th>
+        <th style="padding: 20px;">Created At</th>
+        <th style="padding: 20px;">Pickup Time</th>
+        <th style="padding: 20px;">Delivery Time</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      
+    </tbody>
+  </table>
+
+
+  </div>
+   <script>
+  const token = localStorage.getItem("access_token");
+
+   function logout() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_role");
+      window.location.href = "main.html";
+    }
+
+  function UsersTotalCount() {
+    fetch("http://localhost:8080/admin/users/length", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Unauthorized or error fetching users length.");
+      return res.json();
+    })
+    .then(data => {
+      
+      document.getElementById("userCount").textContent = data;
+    })
+    .catch(err => {
+      console.error("Failed to fetch users:", err);
+      document.getElementById("userCount").textContent = "Error";
+    });
+  }
+
+  function StaffsTotalCount() {
+    fetch("http://localhost:8080/admin/staff/length", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Unauthorized or error fetching staff length.");
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById("staffCount").textContent = data;
+    })
+    .catch(err => {
+      console.error("Failed to fetch staffs:", err);
+      document.getElementById("staffCount").textContent = "Error";
+    });
+  }
+
+  function ServicesTotalCount() {
+    fetch("http://localhost:8080/admin/service/length", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Unauthorized or error fetching service length.");
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById("serviceCount").textContent = data;
+    })
+    .catch(err => {
+      console.error("Failed to fetch services:", err);
+      document.getElementById("serviceCount").textContent = "Error";
+    });
+  }
+
+
+   function loadBookingHistory() {
+    fetch("http://localhost:8080/admin/bookinghistory", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then(res => res.json())
+    .then(bookings => {
+      const tbody = document.querySelector("#bookingTable tbody");
+      tbody.innerHTML = "";
+
+      bookings.forEach(booking => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${booking.userid || "N/A"}</td>
+          <td>${booking.serviceid || "N/A"}</td>
+          <td>${booking.ID}</td>
+          <td>${booking.status}</td>
+          <td>${booking.staffid|| "Unassigned"}</td>
+           <td>${new Date(booking.CreatedAt).toLocaleString()}</td>
+          <td>${booking.PickupTime || "N/A"}</td>
+          <td>${booking.DeliveryTime || "N/A"}</td>
+         
+        `;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(err => {
+      console.error("Failed to fetch booking history:", err);
+      alert("Could not load booking history.");
+    });
+  }
+
+  
+  UsersTotalCount();
+  StaffsTotalCount();
+  ServicesTotalCount();
+  loadBookingHistory()
+</script>
+
+</body>
+</html>
